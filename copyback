@@ -1,0 +1,5 @@
+#!/bin/bash
+#
+#
+
+cp export_products.php ~/docker-joomla-dev/apache-joomla/joomla/cli/

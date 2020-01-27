@@ -1,0 +1,5 @@
+#!/bin/bash
+#
+#php ~/joomla-docker-devel/apache-joomla/joomla/cli/export_products.php
+
+docker exec -it myjoomla-test php /var/www/html/cli/export_products.php
