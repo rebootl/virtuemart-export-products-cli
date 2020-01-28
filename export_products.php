@@ -1,6 +1,6 @@
 <?php
-// export virtuemart products to csv file
-$export_file = 'products.csv';
+// export file relative to joomla base dir.
+$export_file = '/tmp/products.csv';
 
 // (from finder_indexer.php)
 // Make sure we're being called from the command line, not a web interface
@@ -10,6 +10,9 @@ if (PHP_SAPI !== 'cli') {
 
 define('_JEXEC', 1);
 define('JPATH_BASE', dirname(__DIR__));
+
+// export virtuemart products to csv file
+define('EXPORT_FILE', JPATH_BASE . $export_file);
 
 // Load system defines
 if (file_exists(JPATH_BASE . '/defines.php')) {
@@ -32,9 +35,6 @@ require_once JPATH_LIBRARIES . '/cms.php';
 require_once JPATH_CONFIGURATION . '/configuration.php';
 require_once JPATH_BASE . '/includes/framework.php';
 
-// tests
-// System configuration.
-//$config = new JConfig;
 // Configure error reporting to maximum for CLI output.
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -54,15 +54,16 @@ class ExportProducts extends JApplicationCli {
 
     // get all product ids
     $db = JFactory::getDbo();
+    $now = JFactory::getDate()->toSql();
+    $period = -14;
     $query = $db->getQuery(true);
     $query->select($db->quoteName('virtuemart_product_id'))
-      ->from($db->quoteName('j34_virtuemart_products'));
+      ->from($db->quoteName('j34_virtuemart_products'))
+      ->where($db->quoteName('modified_on') . ' > ' . $query->dateAdd($db->quote($now), $period, 'DAY'));
     // use date limit
-    //$now = JFactory::getDate()->toSql();
-    //$period = -7;
-    //  ->where($db->quoteName(' modify date ') . ' > ' . $query->dateAdd($db->quote($now), $period, 'DAY'))
     // use number limit
-    //  ->setLimit('150');
+    //->setLimit('10');
+    //->setLimit('150');
     $db->setQuery($query);
     $results = $db->loadObjectList();
 
@@ -91,7 +92,7 @@ class ExportProducts extends JApplicationCli {
       'vm_product_lwh_uom',
     );
 
-    $fp = fopen($export_file, 'w');
+    $fp = fopen(EXPORT_FILE, 'w');
     fputcsv($fp, $list);
 
     foreach ($results as $res) {
